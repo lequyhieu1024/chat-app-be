@@ -1,0 +1,80 @@
+import prisma from "../libs/prisma";
+import {randomInt} from "node:crypto";
+
+export const getConversations = async (req: any, res: any) => {
+
+    // mặc định người udnfg đang login là user.id = 1
+    const currentUserId = 1;
+    let dataQuery = {};
+    if (req.query.name) {
+        dataQuery = {
+            name: req.query.name
+        }
+    }
+
+
+    try {
+        const conversations = await prisma.conversation.findMany({
+            where: {
+                participants: {
+                    some: {
+                        userId: currentUserId
+                    }
+                },
+            },
+            include: {
+                participants: {
+                    include: { user: true }
+                },
+                messages: {
+                    orderBy: {
+                        sentAt: 'desc'
+                    },
+                    take: 1
+                }
+            }
+        });
+
+        const sortedConversations = conversations
+            .map((conv) => {
+                const lastMessage = conv.messages[0] || null;
+
+                const isGroup = conv.isGroup;
+
+                let title = conv.title || '';
+                let avatar = '';
+
+                if (!isGroup) {
+                    const otherUser = conv.participants.find(p => p.userId !== currentUserId)?.user;
+                    title = otherUser?.name || 'Người lạ';
+                    avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUser?.name || 'Anonymous'}`;
+                }
+
+                return {
+                    id: conv.id,
+                    isGroup,
+                    title,
+                    avatar,
+                    lastMessage,
+                    participants: conv.participants.map(p => ({
+                        id: p.user.id,
+                        name: p.user.name,
+                        email: p.user.email
+                    })),
+                    timestamp: lastMessage?.sentAt || conv.updatedAt,
+                    unreadCount: randomInt(0,10),
+                    isOnline: randomInt(0,2)
+                };
+            })
+            .sort((a, b) => {
+                const timeA = new Date(a.timestamp).getTime();
+                const timeB = new Date(b.timestamp).getTime();
+                return timeB - timeA;
+            });
+
+        return res.json({ success: true, conversations: sortedConversations });
+
+    } catch (e) {
+        return res.status(500).json({ success: false, error: (e as Error).message });
+    }
+};
