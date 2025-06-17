@@ -21,7 +21,10 @@ export const postMessage = async (req: any, res: any) => {
     try {
         const newData = await prisma.message.create({
             data: req.body,
-        })
+        });
+
+        const io = req.app.get("io");
+        io.to(`user:${req.body.conversationId}`).emit("chat:receive", newData);
 
         return res.json({success: true, messages: newData})
     } catch (e) {
