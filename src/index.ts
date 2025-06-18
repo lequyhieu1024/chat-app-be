@@ -8,14 +8,15 @@ import {Server} from "socket.io";
 import chatSocket from "./sockets/chat.socket";
 
 const app = express();
-const PORT = 3000;
+const HTTP_PORT = 3000;
+const SOCKET_PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
 
-const httpServer = createServer(app);
+const socketServer = createServer(app);
 
-const io = new Server(httpServer, {
+const io = new Server(socketServer, {
     cors: {
         origin: process.env.FRONT_END_URL ?? "http://localhost:5173",
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
@@ -25,6 +26,10 @@ chatSocket(io);
 
 app.use('/api', indexRoute);
 
-httpServer.listen(PORT, () => {
-    console.log(`HTTP & Socket.IO server is running at http://localhost:${PORT}`);
+socketServer.listen(SOCKET_PORT, () => {
+    console.log(`Socket server is running at http://localhost:${SOCKET_PORT}`);
+});
+
+app.listen(HTTP_PORT, () => {
+    console.log(`HTTP server is running at http://localhost:${HTTP_PORT}`);
 });

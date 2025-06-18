@@ -2,16 +2,23 @@ import prisma from "../libs/prisma";
 
 export const getMessages = async (req: any, res: any) => {
     try {
-        // mặc định user đang login là id = 1, sau này làm auth sẽ làm thêm sau
-        const currentId = 1;
+        // const currentId = req.headers['x-user-id'] || null;
         const conversationId = req.params.id;
-        let messages = await prisma.message.findMany({where: {conversationId: Number(conversationId)}})
-
-        messages = messages.map(message => {
-            return {...message, isOwn: message.senderId == currentId}
+        const conversation = await prisma.conversation.findFirst({where: { id: Number(conversationId) }});
+        const messages = await prisma.message.findMany({
+            where: {
+                conversationId: Number(conversationId)
+            },
+            include: {
+                sender: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
         })
 
-        return res.json({success: true, messages: messages})
+        return res.json({success: true, messages: messages, isGroup: conversation?.isGroup || false })
     } catch (e) {
         return res.json({success: false, errors: (e as Error).message})
     }
@@ -19,12 +26,10 @@ export const getMessages = async (req: any, res: any) => {
 
 export const postMessage = async (req: any, res: any) => {
     try {
+        req.body.senderId = Number(req.body.senderId);
         const newData = await prisma.message.create({
             data: req.body,
         });
-
-        const io = req.app.get("io");
-        io.to(`user:${req.body.conversationId}`).emit("chat:receive", newData);
 
         return res.json({success: true, messages: newData})
     } catch (e) {

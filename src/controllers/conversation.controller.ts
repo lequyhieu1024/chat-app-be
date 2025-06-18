@@ -48,6 +48,8 @@ export const getConversations = async (req: any, res: any) => {
                     const otherUser = conv.participants.find(p => p.userId !== currentUserId)?.user;
                     title = otherUser?.name || 'Người lạ';
                     avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUser?.name || 'Anonymous'}`;
+                } else {
+                    avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=Anonymous}`;
                 }
 
                 return {
