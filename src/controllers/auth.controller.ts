@@ -2,6 +2,7 @@ import prisma from "../libs/prisma";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {convertName} from "../helpers/common";
+import {upload} from "../libs/multer";
 
 const JWT_SECRET: string = process.env.JWT_SECRET!;
 
@@ -79,6 +80,7 @@ export const me = async (req: any, res: any) => {
 }
 
 export const updateProfile = async (req: any, res: any) => {
-    const data = req.formData();
+    const data = req.body;
+    console.log(req.file);
     console.log(data);
 }
