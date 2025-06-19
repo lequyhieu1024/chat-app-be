@@ -2,7 +2,6 @@ import prisma from "../libs/prisma";
 
 export const getMessages = async (req: any, res: any) => {
     try {
-        // const currentId = req.headers['x-user-id'] || null;
         const conversationId = req.params.id;
         const conversation = await prisma.conversation.findFirst({where: { id: Number(conversationId) }});
         const messages = await prisma.message.findMany({
@@ -31,7 +30,17 @@ export const postMessage = async (req: any, res: any) => {
             data: req.body,
         });
 
-        return res.json({success: true, messages: newData})
+        const sender = await prisma.user.findUnique({ where: {id: req.body.senderId}});
+        const result = {
+            ...newData,
+            sender: {
+                name: sender!.name
+            }
+        };
+
+
+
+        return res.json({success: true, messages: result})
     } catch (e) {
         return res.json({success: false, errors: (e as Error).message})
     }

@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors'
+import cookieParser from "cookie-parser"
 
 import indexRoute from "./routes/index.route";
-import * as http from "node:http";
 import {createServer} from "node:http";
 import {Server} from "socket.io";
 import chatSocket from "./sockets/chat.socket";
@@ -11,8 +11,12 @@ const app = express();
 const HTTP_PORT = 3000;
 const SOCKET_PORT = 3001;
 
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONT_END_URL ?? "http://localhost:5173",
+    credentials: true,
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 const socketServer = createServer(app);
 

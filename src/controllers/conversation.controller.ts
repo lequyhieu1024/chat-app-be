@@ -2,29 +2,49 @@ import prisma from "../libs/prisma";
 import {randomInt} from "node:crypto";
 
 export const getConversations = async (req: any, res: any) => {
-
-    // mặc định người udnfg đang login là user.id = 1
-    const currentUserId = 1;
-    let dataQuery = {};
-    if (req.query.name) {
-        dataQuery = {
-            name: req.query.name
-        }
-    }
-
-
+    const currentUserId = req.user.id;
+    const nameFilter = req.query.name as string | undefined;
     try {
-        const conversations = await prisma.conversation.findMany({
-            where: {
+        const nameFilter = req.query.name as string | undefined;
+
+        const orConditions = [];
+
+        if (nameFilter) {
+            orConditions.push({
+                title: {
+                    contains: nameFilter,
+                }
+            });
+
+            orConditions.push({
                 participants: {
                     some: {
-                        userId: currentUserId
+                        user: {
+                            name: {
+                                contains: nameFilter,
+                            }
+                        }
                     }
-                },
+                }
+            });
+        }
+
+        const conversations = await prisma.conversation.findMany({
+            where: {
+                ...(orConditions.length > 0 && {
+                    OR: orConditions
+                }),
+                participants: {
+                    some: {
+                        userId: currentUserId,
+                    }
+                }
             },
             include: {
                 participants: {
-                    include: { user: true }
+                    include: {
+                        user: true
+                    }
                 },
                 messages: {
                     orderBy: {
@@ -34,6 +54,7 @@ export const getConversations = async (req: any, res: any) => {
                 }
             }
         });
+
 
         const sortedConversations = conversations
             .map((conv) => {
