@@ -11,6 +11,6 @@ router.post('/logout', logout);
 
 router.use(authMiddleware)
 router.get('/me', me);
-router.post('/update-profile',upload.single('avatar'), updateProfile);
+router.post('/update-profile', upload.single('avatar'), updateProfile);
 
 export default router

@@ -81,6 +81,5 @@ export const me = async (req: any, res: any) => {
 
 export const updateProfile = async (req: any, res: any) => {
     const data = req.body;
-    console.log(req.file);
-    console.log(data);
+    // res.send('uploaded!')
 }
