@@ -37,9 +37,6 @@ export const postMessage = async (req: any, res: any) => {
                 name: sender!.name
             }
         };
-
-
-
         return res.json({success: true, messages: result})
     } catch (e) {
         return res.json({success: false, errors: (e as Error).message})
