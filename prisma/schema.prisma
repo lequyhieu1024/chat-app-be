@@ -7,17 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  BLOCKED
+}
+
 model User {
-  id           Int           @id @default(autoincrement())
-  name         String
-  username     String?
-  email        String        @unique
-  password     String
-  avatar       String?
-  messages     Message[]
-  participants Participant[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                  Int           @id @default(autoincrement())
+  name                String
+  username            String?
+  email               String        @unique
+  password            String
+  avatar              String?
+  messages            Message[]
+  participants        Participant[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  sentFriendships     Friendship[]  @relation("SentFriendships")
+  receivedFriendships Friendship[]  @relation("ReceivedFriendships")
 }
 
 model Conversation {
@@ -50,4 +59,16 @@ model Message {
   conversation   Conversation @relation(fields: [conversationId], references: [id])
   conversationId Int
   sentAt         DateTime     @default(now())
+}
+
+model Friendship {
+  id         Int              @id @default(autoincrement())
+  userId     Int
+  friendId   Int
+  status     FriendshipStatus @default(PENDING)
+  sentAt     DateTime         @default(now())
+  acceptedAt DateTime?
+
+  sender   User @relation("SentFriendships", fields: [userId], references: [id])
+  received User @relation("ReceivedFriendships", fields: [friendId], references: [id])
 }
