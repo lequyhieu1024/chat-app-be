@@ -2,8 +2,6 @@ import prisma from "../libs/prisma";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {convertName} from "../helpers/common";
-import {upload} from "../libs/multer";
-
 const JWT_SECRET: string = process.env.JWT_SECRET!;
 
 export const login = async (req: any, res: any) => {
@@ -24,6 +22,11 @@ export const login = async (req: any, res: any) => {
         return res.status(401).json({success: false, error: 'Tài khoản đăng nhập không chính xác'});
     }
 
+    const userData = {
+        avatar: user.avatar ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Anonymous'}`,
+        name: user.name
+    }
+
     const token = jwt.sign(
         {id: user.id, email: user.email},
         JWT_SECRET,
@@ -37,7 +40,7 @@ export const login = async (req: any, res: any) => {
         maxAge: 60 * 60 * 1000, // 1h
     });
 
-    return res.json({success: true})
+    return res.json({success: true, data: userData})
 }
 
 export const register = async (req: any, res: any) => {

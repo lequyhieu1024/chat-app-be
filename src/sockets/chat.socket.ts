@@ -22,6 +22,7 @@ export default function chatSocket(io: Server) {
         });
 
         socket.on('accept_friend', async (receive_id: number) => {
+            console.log(receive_id)
             const receiverSocketId = userSocketMap.get(receive_id);
             if (receiverSocketId) {
                 io.to(receiverSocketId).emit('has_been_accept_friend_request');

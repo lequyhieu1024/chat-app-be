@@ -102,13 +102,33 @@ export const getFriendsRequest = async (req: any, res: any) => {
 
 export const acceptAddFriend = async (req: any, res: any) => {
     try {
-        await prisma.friendship.update({
+        const frship = await prisma.friendship.update({
             where: {
                 id: Number(req.params.id),
             },
             data: {
                 status: 'ACCEPTED',
             },
+        })
+
+        const conv = await prisma.conversation.create({
+            data: {
+                isGroup: false
+            }
+        })
+
+        await prisma.participant.create({
+            data: {
+                userId: frship.userId,
+                conversationId: conv.id
+            }
+        })
+
+        await prisma.participant.create({
+            data: {
+                userId: frship.friendId,
+                conversationId: conv.id
+            }
         })
 
         return res.status(200).json({ success: true, message: 'Đã chấp nhận lời mời kết bạn thành công !'})

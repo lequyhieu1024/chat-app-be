@@ -3,7 +3,6 @@ import {randomInt} from "node:crypto";
 
 export const getConversations = async (req: any, res: any) => {
     const currentUserId = req.user.id;
-    const nameFilter = req.query.name as string | undefined;
     try {
         const nameFilter = req.query.name as string | undefined;
 
@@ -94,6 +93,12 @@ export const getConversations = async (req: any, res: any) => {
                 const timeB = new Date(b.timestamp).getTime();
                 return timeB - timeA;
             });
+
+        const user = await prisma.user.findMany({
+            where: {
+                name: nameFilter
+            }
+        })
 
         return res.json({ success: true, conversations: sortedConversations });
 
